@@ -1,0 +1,19 @@
+{
+  "checkInterval": "10s",
+  "webhookURL": "",
+  "reportStart": false,
+  "repositories": [
+    {
+      "url": "http://localhost:8080/fakechart.yaml",
+      "charts": [
+        {
+          "name": "test",
+          "dependees": [
+            "Onegini",
+            "Boerenkool"
+          ]
+        }
+      ]
+    }
+  ]
+}
