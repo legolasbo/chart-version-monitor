@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -21,6 +22,17 @@ type Config struct {
 	CheckInterval string       `json:"checkInterval"`
 	WebhookURL    string       `json:"webhookURL"`
 	ReportStart   bool         `json:"reportStart"`
+}
+
+func (c Config) String() string {
+	repositories, _ := json.MarshalIndent(c.Repositories, "", "  ")
+	return fmt.Sprintf(`Configuration:
+Webhook: %s
+Check interval: %s
+Report start: %t
+Repositories:
+%s
+`, c.WebhookURL, c.CheckInterval, c.ReportStart, "```\n"+string(repositories)+"\n```")
 }
 
 func (c *Config) dependeesForChart(repository string, chart string) []string {
@@ -106,7 +118,7 @@ func main() {
 
 	repositoriesToCheckForUpdates := make(chan *RepositoryContents)
 	versionsToReport := make(chan Report)
-	startInfo := make(chan string, 2)
+	startInfo := make(chan string, 3)
 	go checkRepositoriesForUpdates(repositoriesToCheckForUpdates, versionsToReport)
 	go reportNewVersions(config, versionsToReport)
 
@@ -116,6 +128,7 @@ func main() {
 	}
 	ticker := time.NewTicker(interval)
 	startInfo <- fmt.Sprintf("%s :: %s", time.Now().Format("2006-01-02 15:04:05"), "Helmchart monitor started")
+	startInfo <- config.String()
 	for {
 		select {
 		case s := <-startInfo:
@@ -233,28 +246,67 @@ func fetchRepositoryContents(repo Repository) (*RepositoryContents, error) {
 }
 
 func getConfig() Config {
-	configFile, err := os.Open("config.json")
-	if err != nil {
-		log.Fatalln("Could not open config.json:", err)
+	config := readConfigFile()
+
+	value, present := os.LookupEnv("CVM_REPOSITORIES")
+	if present {
+		repos := make([]Repository, 0)
+		err := json.Unmarshal([]byte(value), &repos)
+		if err == nil {
+			config.Repositories = repos
+		}
 	}
 
-	fmt.Println("Successfully opened config.json")
-	defer configFile.Close()
-
-	configBytes, _ := io.ReadAll(configFile)
-	config := Config{
-		CheckInterval: "1h",
-		ReportStart:   true,
+	value, present = os.LookupEnv("CVM_WEBHOOK_URL")
+	if present {
+		config.WebhookURL = value
 	}
 
-	json.Unmarshal(configBytes, &config)
+	value, present = os.LookupEnv("CVM_REPORT_START")
+	if present {
+		v, err := strconv.ParseBool(value)
+		if err == nil {
+			config.ReportStart = v
+		}
+	}
+
+	value, present = os.LookupEnv("CVM_CHECK_INTERVAL")
+	if present {
+		_, err := time.ParseDuration(value)
+		if err == nil {
+			config.CheckInterval = value
+		}
+	}
 
 	if config.Repositories == nil {
-		log.Fatalln("No config configured in config.json")
+		log.Fatalln("No repositories configured")
 	}
 
 	if config.WebhookURL == "" {
 		log.Fatalln("No webhookURL configured")
+	}
+	return config
+}
+
+func readConfigFile() Config {
+	defaultConfig := Config{
+		CheckInterval: "1h",
+		ReportStart:   true,
+	}
+
+	configFile, err := os.Open("config.json")
+	if err != nil {
+		return defaultConfig
+	}
+	defer configFile.Close()
+
+	fmt.Println("Successfully opened config.json")
+	configBytes, _ := io.ReadAll(configFile)
+
+	config := defaultConfig
+	err = json.Unmarshal(configBytes, &config)
+	if err != nil {
+		return defaultConfig
 	}
 	return config
 }
