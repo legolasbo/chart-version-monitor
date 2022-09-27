@@ -118,7 +118,6 @@ func main() {
 
 	repositoriesToCheckForUpdates := make(chan *RepositoryContents)
 	versionsToReport := make(chan Report)
-	startInfo := make(chan string, 3)
 	go checkRepositoriesForUpdates(repositoriesToCheckForUpdates, versionsToReport)
 	go reportNewVersions(config, versionsToReport)
 
@@ -127,18 +126,22 @@ func main() {
 		log.Fatalln("Invalid checkInterval. Must be a valid Golang duration string such as 10s, 1m10s or 1h20m30s")
 	}
 	ticker := time.NewTicker(interval)
-	startInfo <- fmt.Sprintf("%s :: %s", time.Now().Format("2006-01-02 15:04:05"), "Helmchart monitor started")
-	startInfo <- config.String()
+	go sendStartInfo(config)
+	go fetchAllRepositories(config, repositoriesToCheckForUpdates)
 	for {
 		select {
-		case s := <-startInfo:
-			if config.ReportStart {
-				sendMessageToSlack(config, Message{Text: s})
-			}
 		case <-ticker.C:
 			fetchAllRepositories(config, repositoriesToCheckForUpdates)
 		}
 	}
+}
+
+func sendStartInfo(config Config) {
+	if !config.ReportStart {
+		return
+	}
+	s := fmt.Sprintf("%s :: %s\n%s", time.Now().Format("2006-01-02 15:04:05"), "Helmchart monitor started", config)
+	sendMessageToSlack(config, Message{Text: s})
 }
 
 func fetchAllRepositories(config Config, repositoriesToCheckForUpdates chan *RepositoryContents) {
