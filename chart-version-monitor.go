@@ -17,54 +17,6 @@ import (
 	"time"
 )
 
-type Config struct {
-	Repositories  []Repository `json:"repositories"`
-	CheckInterval string       `json:"checkInterval"`
-	WebhookURL    string       `json:"webhookURL"`
-	ReportStart   bool         `json:"reportStart"`
-}
-
-func (c Config) String() string {
-	repositories, _ := json.MarshalIndent(c.Repositories, "", "  ")
-	return fmt.Sprintf(`Configuration:
-Webhook: %s
-Check interval: %s
-Report start: %t
-Repositories:
-%s
-`, c.WebhookURL, c.CheckInterval, c.ReportStart, "```\n"+string(repositories)+"\n```")
-}
-
-func (c *Config) dependeesForChart(repository string, chart string) []string {
-	for _, c := range c.chartsForRepository(repository) {
-		if c.Name == chart {
-			return c.Dependees
-		}
-	}
-
-	return make([]string, 0)
-}
-
-func (c *Config) chartsForRepository(repository string) []Chart {
-	for _, r := range c.Repositories {
-		if r.URL == repository {
-			return r.Charts
-		}
-	}
-
-	return make([]Chart, 0)
-}
-
-type Repository struct {
-	URL    string  `json:"url"`
-	Charts []Chart `json:"charts"`
-}
-
-type Chart struct {
-	Name      string   `json:"name"`
-	Dependees []string `json:"dependees"`
-}
-
 type RepositoryContents struct {
 	Entries   map[string][]Entry `yaml:"entries"`
 	Versions  map[string]semver.Collection
@@ -201,7 +153,7 @@ func reportNewVersions(config Config, toReport <-chan Report) {
 		msg := Message{
 			Text: fmt.Sprintf("Chart *%s* in repo %s updated to version *%s*", report.Chart, report.Repository, report.NewVersion),
 		}
-		dependees := config.dependeesForChart(report.Repository, report.Chart)
+		dependees := config.DependeesForChart(report.Repository, report.Chart)
 		if len(dependees) > 0 {
 			msg.Text = fmt.Sprintln(msg.Text, "\nYou might want to check:", strings.Join(dependees, ", "))
 		}
