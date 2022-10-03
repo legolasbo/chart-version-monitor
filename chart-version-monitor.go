@@ -10,9 +10,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -155,37 +153,12 @@ func fetchRepositoryContents(repo Repository) (*RepositoryContents, error) {
 }
 
 func getConfig() Config {
-	config := readConfigFile()
+	config := DefaultConfig().FromFile("config.json")
 
-	value, present := os.LookupEnv("CVM_REPOSITORIES")
-	if present {
-		repos := make([]Repository, 0)
-		err := json.Unmarshal([]byte(value), &repos)
-		if err == nil {
-			config.Repositories = repos
-		}
-	}
-
-	value, present = os.LookupEnv("CVM_WEBHOOK_URL")
-	if present {
-		config.WebhookURL = value
-	}
-
-	value, present = os.LookupEnv("CVM_REPORT_START")
-	if present {
-		v, err := strconv.ParseBool(value)
-		if err == nil {
-			config.ReportStart = v
-		}
-	}
-
-	value, present = os.LookupEnv("CVM_CHECK_INTERVAL")
-	if present {
-		_, err := time.ParseDuration(value)
-		if err == nil {
-			config.CheckInterval = value
-		}
-	}
+	PopulateRepositoriesFromEnvironment("CVM_REPOSITORIES", &config.Repositories)
+	PopulateStringFromEnvironment("CVM_WEBHOOK_URL", &config.WebhookURL)
+	PopulateBooleanFromEnvironment("CVM_REPORT_START", &config.ReportStart)
+	PopulateStringFromEnvironment("CVM_CHECK_INTERVAL", &config.CheckInterval)
 
 	if config.Repositories == nil {
 		log.Fatalln("No repositories configured")
@@ -193,29 +166,6 @@ func getConfig() Config {
 
 	if config.WebhookURL == "" {
 		log.Fatalln("No webhookURL configured")
-	}
-	return config
-}
-
-func readConfigFile() Config {
-	defaultConfig := Config{
-		CheckInterval: "1h",
-		ReportStart:   true,
-	}
-
-	configFile, err := os.Open("config.json")
-	if err != nil {
-		return defaultConfig
-	}
-	defer configFile.Close()
-
-	fmt.Println("Successfully opened config.json")
-	configBytes, _ := io.ReadAll(configFile)
-
-	config := defaultConfig
-	err = json.Unmarshal(configBytes, &config)
-	if err != nil {
-		return defaultConfig
 	}
 	return config
 }
