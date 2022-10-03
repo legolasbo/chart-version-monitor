@@ -46,3 +46,18 @@ func PopulateRepositoriesFromEnvironment(name string, variable *[]Repository) bo
 	*variable = repos
 	return true
 }
+
+func PopulateDurationFromEnvironment(name string, variable *Duration) bool {
+	value, present := os.LookupEnv(name)
+	if !present {
+		return false
+	}
+
+	duration, err := ParseDuration(value)
+	if err != nil {
+		return false
+	}
+
+	*variable = duration
+	return true
+}

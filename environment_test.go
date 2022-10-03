@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 const NonExisting = "NON_EXISTING_ENVIRONMENT_VARIABLE"
@@ -113,4 +114,33 @@ func TestPopulateRepositoriesFromEnvironment(t *testing.T) {
 	firstRepo := test[0]
 	Equals(firstRepo.URL, "http://localhost:8080/fakechart.yaml", t)
 	Equals(len(firstRepo.Charts), 1, t)
+}
+
+func TestPopulateDurationFromEnvironment_NonExisting(t *testing.T) {
+	d := Duration(100)
+
+	success := PopulateDurationFromEnvironment(NonExisting, &d)
+
+	Equals(d, Duration(100), t)
+	Equals(success, false, t)
+}
+
+func TestPopulateDurationFromEnvironment_unparsable(t *testing.T) {
+	os.Setenv(Existing, "fails")
+	d := Duration(100)
+
+	success := PopulateDurationFromEnvironment(Existing, &d)
+
+	Equals(d, Duration(100), t)
+	Equals(success, false, t)
+}
+
+func TestPopulateDurationFromEnvironment(t *testing.T) {
+	os.Setenv(Existing, "10m")
+	d := Duration(10 * time.Minute)
+
+	success := PopulateDurationFromEnvironment(Existing, &d)
+
+	Equals(d, Duration(10*time.Minute), t)
+	Equals(success, true, t)
 }

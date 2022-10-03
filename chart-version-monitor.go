@@ -25,11 +25,7 @@ func main() {
 	go checkRepositoriesForUpdates(repositoriesToCheckForUpdates, versionsToReport)
 	go reportNewVersions(config, versionsToReport)
 
-	interval, err := time.ParseDuration(config.CheckInterval)
-	if err != nil {
-		log.Fatalln("Invalid checkInterval. Must be a valid Golang duration string such as 10s, 1m10s or 1h20m30s")
-	}
-	ticker := time.NewTicker(interval)
+	ticker := time.NewTicker(config.CheckInterval.Duration())
 	go sendStartInfo(config)
 	go fetchAllRepositories(config, repositoriesToCheckForUpdates)
 	for {
@@ -158,7 +154,7 @@ func getConfig() Config {
 	PopulateRepositoriesFromEnvironment("CVM_REPOSITORIES", &config.Repositories)
 	PopulateStringFromEnvironment("CVM_WEBHOOK_URL", &config.WebhookURL)
 	PopulateBooleanFromEnvironment("CVM_REPORT_START", &config.ReportStart)
-	PopulateStringFromEnvironment("CVM_CHECK_INTERVAL", &config.CheckInterval)
+	PopulateDurationFromEnvironment("CVM_CHECK_INTERVAL", &config.CheckInterval)
 
 	if config.Repositories == nil {
 		log.Fatalln("No repositories configured")

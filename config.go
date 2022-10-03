@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 )
 
 type Repository struct {
@@ -20,7 +21,7 @@ type Chart struct {
 
 type Config struct {
 	Repositories  []Repository `json:"repositories"`
-	CheckInterval string       `json:"checkInterval"`
+	CheckInterval Duration     `json:"checkInterval"`
 	WebhookURL    string       `json:"webhookURL"`
 	ReportStart   bool         `json:"reportStart"`
 }
@@ -58,7 +59,7 @@ func (c *Config) ChartsForRepository(repository string) []Chart {
 
 func DefaultConfig() Config {
 	return Config{
-		CheckInterval: "1h",
+		CheckInterval: Duration(1 * time.Hour),
 		ReportStart:   true,
 	}
 }
