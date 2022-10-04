@@ -33,8 +33,8 @@ func (r Repository) Validate() error {
 }
 
 type Chart struct {
-	Name      string   `json:"name"`
-	Dependees []string `json:"dependees"`
+	Name      ChartName `json:"name"`
+	Dependees []string  `json:"dependees"`
 }
 
 type Config struct {
@@ -55,7 +55,7 @@ Repositories:
 `, c.WebhookURL, c.CheckInterval, c.ReportStart, "```\n"+string(repositories)+"\n```")
 }
 
-func (c *Config) DependeesForChart(repository string, chart string) []string {
+func (c *Config) DependeesForChart(repository string, chart ChartName) []string {
 	for _, c := range c.ChartsForRepository(repository) {
 		if c.Name == chart {
 			return c.Dependees

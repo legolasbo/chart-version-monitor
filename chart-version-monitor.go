@@ -57,16 +57,17 @@ func fetchAllRepositories(config Config, repositoriesToCheckForUpdates chan *Rep
 }
 
 type Report struct {
-	Repository, Chart string
-	NewVersion        *semver.Version
+	Repository string
+	Chart      ChartName
+	NewVersion *semver.Version
 }
 
 func checkRepositoriesForUpdates(toCheck <-chan *RepositoryContents, toReport chan<- Report) {
-	highestVersions := make(map[string]map[string]*semver.Version)
+	highestVersions := make(map[string]map[ChartName]*semver.Version)
 	for repo := range toCheck {
 		log.Println("Checking:", repo.URL)
 		if highestVersions[repo.URL] == nil {
-			highestVersions[repo.URL] = make(map[string]*semver.Version)
+			highestVersions[repo.URL] = make(map[ChartName]*semver.Version)
 		}
 
 		for chartName, versions := range repo.Versions {
@@ -143,8 +144,8 @@ func fetchRepositoryContents(repo Repository) (*RepositoryContents, error) {
 		return nil, err
 	}
 
-	repoContents.filterCharts(repo.Charts)
-	repoContents.entriesToVersions()
+	repoContents.FilterCharts(repo.Charts)
+	repoContents.EntriesToVersions()
 	return &repoContents, nil
 }
 

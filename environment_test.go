@@ -30,7 +30,7 @@ func TestPopulateBooleanFromEnvironment_NoVariablePresent(t *testing.T) {
 }
 
 func TestPopulateBooleanFromEnvironment_VariableUnparsable(t *testing.T) {
-	os.Setenv(Existing, "unparsable")
+	_ = os.Setenv(Existing, "unparsable")
 	test := true
 	success := PopulateBooleanFromEnvironment(Existing, &test)
 
@@ -45,7 +45,7 @@ func TestPopulateBooleanFromEnvironment_VariableUnparsable(t *testing.T) {
 }
 
 func TestPopulateBooleanFromEnvironment(t *testing.T) {
-	os.Setenv(Existing, "t")
+	_ = os.Setenv(Existing, "t")
 	test := false
 	success := PopulateBooleanFromEnvironment(Existing, &test)
 
@@ -62,7 +62,7 @@ func TestPopulateStringFromEnvironment_NonExisting(t *testing.T) {
 }
 
 func TestPopulateStringFromEnvironment(t *testing.T) {
-	os.Setenv(Existing, "newValue")
+	_ = os.Setenv(Existing, "newValue")
 	test := "startValue"
 	success := PopulateStringFromEnvironment(Existing, &test)
 
@@ -79,7 +79,7 @@ func TestPopulateRepositoriesFromEnvironment_NonExisting(t *testing.T) {
 }
 
 func TestPopulateRepositoriesFromEnvironment_NonParsable(t *testing.T) {
-	os.Setenv(Existing, "blaat")
+	_ = os.Setenv(Existing, "blaat")
 	test := make([]Repository, 0)
 	success := PopulateRepositoriesFromEnvironment(Existing, &test)
 
@@ -103,7 +103,7 @@ func TestPopulateRepositoriesFromEnvironment(t *testing.T) {
     }
   ]`
 
-	os.Setenv(Existing, fakeRepository)
+	_ = os.Setenv(Existing, fakeRepository)
 
 	test := make([]Repository, 0)
 	success := PopulateRepositoriesFromEnvironment(Existing, &test)
@@ -126,7 +126,7 @@ func TestPopulateDurationFromEnvironment_NonExisting(t *testing.T) {
 }
 
 func TestPopulateDurationFromEnvironment_unparsable(t *testing.T) {
-	os.Setenv(Existing, "fails")
+	_ = os.Setenv(Existing, "fails")
 	d := Duration(100)
 
 	success := PopulateDurationFromEnvironment(Existing, &d)
@@ -136,7 +136,7 @@ func TestPopulateDurationFromEnvironment_unparsable(t *testing.T) {
 }
 
 func TestPopulateDurationFromEnvironment(t *testing.T) {
-	os.Setenv(Existing, "10m")
+	_ = os.Setenv(Existing, "10m")
 	d := Duration(10 * time.Minute)
 
 	success := PopulateDurationFromEnvironment(Existing, &d)
