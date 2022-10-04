@@ -149,20 +149,12 @@ func fetchRepositoryContents(repo Repository) (*RepositoryContents, error) {
 }
 
 func getConfig() Config {
-	config := DefaultConfig().FromFile("config.json")
-
-	PopulateRepositoriesFromEnvironment("CVM_REPOSITORIES", &config.Repositories)
-	PopulateStringFromEnvironment("CVM_WEBHOOK_URL", &config.WebhookURL)
-	PopulateBooleanFromEnvironment("CVM_REPORT_START", &config.ReportStart)
-	PopulateDurationFromEnvironment("CVM_CHECK_INTERVAL", &config.CheckInterval)
-
-	if config.Repositories == nil {
-		log.Fatalln("No repositories configured")
+	config := DefaultConfig().FromFile("config.json").FromEnvironment()
+	err := config.Validate()
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	if config.WebhookURL == "" {
-		log.Fatalln("No webhookURL configured")
-	}
 	return config
 }
 

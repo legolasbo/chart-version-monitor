@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -9,9 +10,26 @@ import (
 	"time"
 )
 
+const ENV_Repositories = "CVM_REPOSITORIES"
+const ENV_WebhookURL = "CVM_WEBHOOK_URL"
+const ENV_ReportStart = "CVM_REPORT_START"
+const ENV_CheckInterval = "CVM_CHECK_INTERVAL"
+
 type Repository struct {
 	URL    string  `json:"url"`
 	Charts []Chart `json:"charts"`
+}
+
+func (r Repository) Validate() error {
+	if r.URL == "" {
+		return errors.New("the repository URL should not be empty")
+	}
+
+	if len(r.Charts) == 0 {
+		return fmt.Errorf("repository %s is not configured to monitor any charts", r.URL)
+	}
+
+	return nil
 }
 
 type Chart struct {
@@ -83,5 +101,32 @@ func (c Config) FromFile(name string) Config {
 }
 
 func (c Config) FromEnvironment() Config {
+	PopulateRepositoriesFromEnvironment(ENV_Repositories, &c.Repositories)
+	PopulateStringFromEnvironment(ENV_WebhookURL, &c.WebhookURL)
+	PopulateBooleanFromEnvironment(ENV_ReportStart, &c.ReportStart)
+	PopulateDurationFromEnvironment(ENV_CheckInterval, &c.CheckInterval)
 	return c
+}
+
+func (c Config) Validate() error {
+	if c.Repositories == nil {
+		return errors.New("no repositories configured")
+	}
+
+	if len(c.Repositories) == 0 {
+		return errors.New("no repositories configured")
+	}
+
+	for _, r := range c.Repositories {
+		err := r.Validate()
+		if err != nil {
+			return fmt.Errorf("repositories contains an invalid repository: %w", err)
+		}
+	}
+
+	if c.WebhookURL == "" {
+		return errors.New("no webhookURL configured")
+	}
+
+	return nil
 }
