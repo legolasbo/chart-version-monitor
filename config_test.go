@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -92,4 +93,73 @@ func TestConfig_FromEnvironment(t *testing.T) {
 	Equals(c.WebhookURL, "https://example.com/web/hook", t)
 	Equals(c.ReportStart, true, t)
 	Equals(c.CheckInterval, Duration(1*time.Hour), t)
+}
+
+func TestConfig_FromFile_NonExisting(t *testing.T) {
+	c := DefaultConfig().FromFile("non-existing.json")
+
+	Equals(reflect.DeepEqual(c, DefaultConfig()), true, t)
+}
+
+func TestConfig_FromFile(t *testing.T) {
+	c := DefaultConfig().FromFile("example.config.json")
+
+	Equals(len(c.Repositories), 1, t)
+	Equals(c.WebhookURL, "https://example.com/web/hook", t)
+	Equals(c.ReportStart, false, t)
+	Equals(c.CheckInterval, Duration(10*time.Second), t)
+}
+
+func TestConfig_String(t *testing.T) {
+	c := DefaultConfig()
+
+	expected := fmt.Sprintf(`Configuration:
+Webhook: %s
+Check interval: %s
+Report start: %t
+Repositories:
+%s
+`, c.WebhookURL, c.CheckInterval, c.ReportStart, "```\nnull\n```")
+
+	Equals(c.String(), expected, t)
+}
+
+func TestConfig_ChartsForRepository_UnknownRepository(t *testing.T) {
+	c := Config{}.FromFile("example.config.json")
+
+	result := c.ChartsForRepository("https://unknown.example.com")
+
+	MapsEqual(result, make([]Chart, 0), t)
+}
+
+func TestConfig_ChartsForRepository(t *testing.T) {
+	c := Config{}.FromFile("example.config.json")
+
+	result := c.ChartsForRepository("https://example.com")
+
+	MapsEqual(result, c.Repositories[0].Charts, t)
+}
+
+func TestConfig_DependeesForChart_UnknownRepository(t *testing.T) {
+	c := Config{}.FromFile("example.config.json")
+
+	result := c.DependeesForChart("unknown", "example")
+
+	MapsEqual(result, make([]string, 0), t)
+}
+
+func TestConfig_DependeesForChart_UnknownChart(t *testing.T) {
+	c := Config{}.FromFile("example.config.json")
+
+	result := c.DependeesForChart("https://example.com", "unknown")
+
+	MapsEqual(result, make([]string, 0), t)
+}
+
+func TestConfig_DependeesForChart(t *testing.T) {
+	c := Config{}.FromFile("example.config.json")
+
+	result := c.DependeesForChart("https://example.com", "example")
+
+	MapsEqual(result, c.Repositories[0].Charts[0].Dependees, t)
 }

@@ -1,16 +1,16 @@
 {
   "checkInterval": "10s",
-  "webhookURL": "",
+  "webhookURL": "https://example.com/web/hook",
   "reportStart": false,
   "repositories": [
     {
-      "url": "http://localhost:8080/fakechart.yaml",
+      "url": "https://example.com",
       "charts": [
         {
-          "name": "test",
+          "name": "example",
           "dependees": [
-            "Onegini",
-            "Boerenkool"
+            "example",
+            "dependee"
           ]
         }
       ]

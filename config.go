@@ -92,12 +92,13 @@ func (c Config) FromFile(name string) Config {
 	log.Println("Successfully opened", name)
 	configBytes, _ := io.ReadAll(configFile)
 
-	config := c
+	originalConfig := c
 	err = json.Unmarshal(configBytes, &c)
 	if err != nil {
-		return c
+		log.Println("Could not open", name, err)
+		return originalConfig
 	}
-	return config
+	return c
 }
 
 func (c Config) FromEnvironment() Config {

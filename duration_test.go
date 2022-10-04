@@ -23,7 +23,7 @@ func TestDuration_UnmarshalJSON_float(t *testing.T) {
 
 	val := float64(1.123)
 	j, _ := json.Marshal(val)
-	err := d.UnmarshallJSON(j)
+	err := d.UnmarshalJSON(j)
 
 	Equals(err, nil, t)
 	Equals(d, Duration(time.Duration(val)), t)
@@ -33,7 +33,7 @@ func TestDuration_UnmarshallJSON_int(t *testing.T) {
 	var d Duration
 
 	j, _ := json.Marshal(10)
-	err := d.UnmarshallJSON(j)
+	err := d.UnmarshalJSON(j)
 
 	Equals(err, nil, t)
 	Equals(d, Duration(time.Duration(10)), t)
@@ -46,7 +46,7 @@ func TestDuration_UnmarshallJSON_parsableString(t *testing.T) {
 	Equals(string(j), "\"1ms\"", t)
 
 	var d Duration
-	err := d.UnmarshallJSON(j)
+	err := d.UnmarshalJSON(j)
 
 	Equals(err, nil, t)
 	Equals(d, initialDuration, t)
