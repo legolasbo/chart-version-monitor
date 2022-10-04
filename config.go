@@ -93,7 +93,7 @@ func (c Config) FromFile(name string) Config {
 	configBytes, _ := io.ReadAll(configFile)
 
 	config := c
-	err = json.Unmarshal(configBytes, c)
+	err = json.Unmarshal(configBytes, &c)
 	if err != nil {
 		return c
 	}

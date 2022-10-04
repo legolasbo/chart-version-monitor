@@ -81,10 +81,10 @@ func TestConfig_Validate(t *testing.T) {
 }
 
 func TestConfig_FromEnvironment(t *testing.T) {
-	os.Setenv(ENV_Repositories, "[{\"url\": \"https://example.com/index.yaml\",\"charts\": [{\"name\": \"test\",\"dependees\": [\"some\"]}]}]")
-	os.Setenv(ENV_WebhookURL, "https://example.com/web/hook")
-	os.Setenv(ENV_ReportStart, "true")
-	os.Setenv(ENV_CheckInterval, "1h")
+	_ = os.Setenv(ENV_Repositories, "[{\"url\": \"https://example.com/index.yaml\",\"charts\": [{\"name\": \"test\",\"dependees\": [\"some\"]}]}]")
+	_ = os.Setenv(ENV_WebhookURL, "https://example.com/web/hook")
+	_ = os.Setenv(ENV_ReportStart, "true")
+	_ = os.Setenv(ENV_CheckInterval, "1h")
 
 	c := DefaultConfig().FromEnvironment()
 
