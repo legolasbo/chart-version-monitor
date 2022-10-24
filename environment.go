@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"os"
+	"sigs.k8s.io/yaml"
 	"strconv"
 )
 
@@ -38,7 +38,7 @@ func PopulateRepositoriesFromEnvironment(name string, variable *[]Repository) bo
 	}
 
 	repos := make([]Repository, 0)
-	err := json.Unmarshal([]byte(value), &repos)
+	err := yaml.Unmarshal([]byte(value), &repos)
 	if err != nil {
 		return false
 	}

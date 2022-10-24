@@ -1,13 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"time"
+
+	"sigs.k8s.io/yaml"
 )
 
 const ENV_Repositories = "CVM_REPOSITORIES"
@@ -39,20 +40,20 @@ type Chart struct {
 
 type Config struct {
 	Repositories  []Repository `json:"repositories"`
-	CheckInterval Duration     `json:"checkInterval"`
-	WebhookURL    string       `json:"webhookURL"`
-	ReportStart   bool         `json:"reportStart"`
+	CheckInterval Duration     `json:"check_interval"`
+	WebhookURL    string       `json:"webhook_url"`
+	ReportStart   bool         `json:"report_start"`
 }
 
 func (c Config) String() string {
-	repositories, _ := json.MarshalIndent(c.Repositories, "", "  ")
+	repositories, _ := yaml.Marshal(c.Repositories)
 	return fmt.Sprintf(`Configuration:
 Webhook: %s
 Check interval: %s
 Report start: %t
 Repositories:
 %s
-`, c.WebhookURL, c.CheckInterval, c.ReportStart, "```\n"+string(repositories)+"\n```")
+`, c.WebhookURL, c.CheckInterval, c.ReportStart, "```\n"+string(repositories)+"```")
 }
 
 func (c *Config) DependeesForChart(repository string, chart ChartName) []string {
@@ -93,7 +94,7 @@ func (c Config) FromFile(name string) Config {
 	configBytes, _ := io.ReadAll(configFile)
 
 	originalConfig := c
-	err = json.Unmarshal(configBytes, &c)
+	err = yaml.Unmarshal(configBytes, &c)
 	if err != nil {
 		log.Println("Could not open", name, err)
 		return originalConfig

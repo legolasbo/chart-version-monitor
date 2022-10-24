@@ -1,0 +1,10 @@
+check_interval: 1h
+webhook_url: https://example.com/web/hook
+report_start: false
+repositories:
+  - url: https://example.com/repo
+    charts:
+      - name: example-chart
+        dependees:
+          - Example
+          - Dependee

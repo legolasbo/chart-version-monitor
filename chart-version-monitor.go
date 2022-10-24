@@ -150,7 +150,7 @@ func fetchRepositoryContents(repo Repository) (*RepositoryContents, error) {
 }
 
 func getConfig() Config {
-	config := DefaultConfig().FromFile("config.json").FromEnvironment()
+	config := DefaultConfig().FromFile("config.yml").FromEnvironment()
 	err := config.Validate()
 	if err != nil {
 		log.Fatalln(err)

@@ -82,7 +82,13 @@ func TestConfig_Validate(t *testing.T) {
 }
 
 func TestConfig_FromEnvironment(t *testing.T) {
-	_ = os.Setenv(ENV_Repositories, "[{\"url\": \"https://example.com/index.yaml\",\"charts\": [{\"name\": \"test\",\"dependees\": [\"some\"]}]}]")
+	_ = os.Setenv(ENV_Repositories, `
+- url: https://example.com/index.yaml
+  charts:
+    - name: test
+      dependees:
+        - some
+`)
 	_ = os.Setenv(ENV_WebhookURL, "https://example.com/web/hook")
 	_ = os.Setenv(ENV_ReportStart, "true")
 	_ = os.Setenv(ENV_CheckInterval, "1h")
@@ -102,12 +108,12 @@ func TestConfig_FromFile_NonExisting(t *testing.T) {
 }
 
 func TestConfig_FromFile(t *testing.T) {
-	c := DefaultConfig().FromFile("example.config.json")
+	c := DefaultConfig().FromFile("example.config.yml")
 
 	Equals(len(c.Repositories), 1, t)
 	Equals(c.WebhookURL, "https://example.com/web/hook", t)
 	Equals(c.ReportStart, false, t)
-	Equals(c.CheckInterval, Duration(10*time.Second), t)
+	Equals(c.CheckInterval, Duration(1*time.Hour), t)
 }
 
 func TestConfig_String(t *testing.T) {
@@ -125,7 +131,7 @@ Repositories:
 }
 
 func TestConfig_ChartsForRepository_UnknownRepository(t *testing.T) {
-	c := Config{}.FromFile("example.config.json")
+	c := Config{}.FromFile("example.config.yml")
 
 	result := c.ChartsForRepository("https://unknown.example.com")
 
@@ -133,15 +139,15 @@ func TestConfig_ChartsForRepository_UnknownRepository(t *testing.T) {
 }
 
 func TestConfig_ChartsForRepository(t *testing.T) {
-	c := Config{}.FromFile("example.config.json")
+	c := Config{}.FromFile("example.config.yml")
 
-	result := c.ChartsForRepository("https://example.com")
+	result := c.ChartsForRepository("https://example.com/repo")
 
 	MapsEqual(result, c.Repositories[0].Charts, t)
 }
 
 func TestConfig_DependeesForChart_UnknownRepository(t *testing.T) {
-	c := Config{}.FromFile("example.config.json")
+	c := Config{}.FromFile("example.config.yml")
 
 	result := c.DependeesForChart("unknown", "example")
 
@@ -149,7 +155,7 @@ func TestConfig_DependeesForChart_UnknownRepository(t *testing.T) {
 }
 
 func TestConfig_DependeesForChart_UnknownChart(t *testing.T) {
-	c := Config{}.FromFile("example.config.json")
+	c := Config{}.FromFile("example.config.yml")
 
 	result := c.DependeesForChart("https://example.com", "unknown")
 
@@ -157,9 +163,9 @@ func TestConfig_DependeesForChart_UnknownChart(t *testing.T) {
 }
 
 func TestConfig_DependeesForChart(t *testing.T) {
-	c := Config{}.FromFile("example.config.json")
+	c := Config{}.FromFile("example.config.yml")
 
-	result := c.DependeesForChart("https://example.com", "example")
+	result := c.DependeesForChart("https://example.com/repo", "example-chart")
 
 	MapsEqual(result, c.Repositories[0].Charts[0].Dependees, t)
 }
