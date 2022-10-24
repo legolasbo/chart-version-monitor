@@ -1,6 +1,6 @@
-# Chart-version-monitor
+# Chart Version Monitor
 
-Chart version monitor is a relatively simple tool to monitor chart versions. It allows you to configure a bunch of
+Chart Version Monitor is a relatively simple tool to monitor chart versions. It allows you to configure a bunch of
 repositories and charts to monitor for changes and calls a Slack webhook to notify you when they change.
 
 ## CONFIGURATION
